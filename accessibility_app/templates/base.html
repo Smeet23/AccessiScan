@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Accessibility Analyzer{% endblock %}</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        /* Add any additional custom styles here */
+        .impact-critical {
+            background-color: #f87171;
+        }
+        .impact-serious {
+            background-color: #fbbf24;
+        }
+        .impact-moderate {
+            background-color: #60a5fa;
+        }
+        .impact-minor {
+            background-color: #a3e635;
+        }
+        .code-block {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-indigo-700 text-white shadow-md">
+        <div class="container mx-auto py-4 px-6">
+            <h1 class="text-3xl font-bold">
+                <a href="{% url 'accessibility_app:home' %}" class="hover:text-indigo-200">
+                    Accessibility Analyzer
+                </a>
+            </h1>
+            <p class="text-indigo-200">Analyze website accessibility issues using Claude AI</p>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto flex-grow p-6">
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="p-4 rounded-md {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-200 py-4 mt-6">
+        <div class="container mx-auto px-6 text-center text-gray-600">
+            <p>Accessibility Analyzer &copy; {% now "Y" %}</p>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
+    <script>
+        // Toggle between URL and HTML inputs based on radio selection
+        function toggleInputFields() {
+            const inputType = document.querySelector('input[name="input_type"]:checked').value;
+            const urlField = document.getElementById('id_url').closest('.form-group');
+            const htmlField = document.getElementById('id_html').closest('.form-group');
+            
+            if (inputType === 'url') {
+                urlField.classList.remove('hidden');
+                htmlField.classList.add('hidden');
+            } else {
+                urlField.classList.add('hidden');
+                htmlField.classList.remove('hidden');
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const radioButtons = document.querySelectorAll('input[name="input_type"]');
+            if (radioButtons.length) {
+                // Initial toggle
+                toggleInputFields();
+                
+                // Add event listeners to radio buttons
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', toggleInputFields);
+                });
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
