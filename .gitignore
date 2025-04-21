@@ -1,0 +1,35 @@
+# Python and Django
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.pot
+
+# Django specific
+db.sqlite3
+media/
+staticfiles/
+*.pyc
+
+# Migrations
+**/migrations/*.py
+**/migrations/__pycache__/
+
+# Node
+node_modules/
+package-lock.json
+
+# Env
+.env
+*.env
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Other
+scanner/
