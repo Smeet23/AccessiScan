@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up - Accessibility Analyzer{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center min-vh-100" style="background-color: #f5f7fa;">
+    <div class="card shadow-sm p-4 rounded-4" style="max-width: 440px; width: 100%; background-color: #ffffff;">
+        <h2 class="text-center text-dark fw-bold mb-2">🧩 Join Accessibility Analyzer</h2>
+        <p class="text-center text-secondary mb-4">Start auditing and improving your website's accessibility today.</p>
+
+        <form method="post" class="needs-validation w-100" novalidate>
+            {% csrf_token %}
+
+            <div class="form-floating mb-3">
+                <input type="text" name="username" id="id_username" class="form-control" placeholder="Username" required>
+                <label for="id_username">Username</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="email" name="email" id="id_email" class="form-control" placeholder="Email" required>
+                <label for="id_email">Email</label>
+            </div>
+
+            <div class="form-floating mb-3 position-relative">
+                <input type="password" name="password1" id="id_password1" class="form-control" placeholder="Password" required>
+                <label for="id_password1">Password</label>
+                <span class="position-absolute top-50 end-0 translate-middle-y me-3 cursor-pointer" id="togglePassword" aria-label="Toggle password visibility">
+                    <i class="fas fa-eye"></i>
+                </span>
+                <div class="mt-1 small text-muted" id="strengthText"></div>
+            </div>
+
+            <div class="form-floating mb-3 position-relative">
+                <input type="password" name="password2" id="id_password2" class="form-control" placeholder="Confirm Password" required>
+                <label for="id_password2">Confirm Password</label>
+                <span class="position-absolute top-50 end-0 translate-middle-y me-3 cursor-pointer" id="togglePassword2" aria-label="Toggle confirm password visibility">
+                    <i class="fas fa-eye"></i>
+                </span>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100 shadow-sm py-2">Create Account</button>
+        </form>
+
+        <p class="text-center mt-3 text-muted">
+            Already have an account?
+            <a href="{% url 'accessibility_app:login' %}" class="text-decoration-none fw-semibold text-primary">Log in</a>
+        </p>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+<style>
+    body {
+        background-color: #f5f7fa;
+        font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #212529;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: #4a90e2;
+        box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    #togglePassword, #togglePassword2 {
+        padding: 6px;
+        border-radius: 6px;
+        transition: background 0.2s;
+    }
+
+    #togglePassword:hover, #togglePassword2:hover {
+        background: rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-dark {
+        background-color: #343a40;
+        border: none;
+    }
+
+    .btn-dark:hover {
+        background-color: #23272b;
+    }
+
+    .alert {
+        margin-top: 1rem;
+    }
+</style>
+
+<script>
+    function toggleVisibility(toggleId, inputId) {
+        const toggle = document.getElementById(toggleId);
+        const input = document.getElementById(inputId);
+
+        toggle.addEventListener('click', () => {
+            const icon = toggle.querySelector("i");
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        });
+    }
+
+    toggleVisibility("togglePassword", "id_password1");
+    toggleVisibility("togglePassword2", "id_password2");
+
+    document.getElementById("id_password1").addEventListener("input", function () {
+        const strengthText = document.getElementById("strengthText");
+        const value = this.value;
+        let strength = "";
+
+        if (value.length === 0) {
+            strength = "";
+        } else if (value.length < 6) {
+            strength = "Weak 🔴";
+        } else if (/[A-Z]/.test(value) && /[0-9]/.test(value) && /[\W_]/.test(value)) {
+            strength = "Strong 🟢";
+        } else {
+            strength = "Moderate 🟡";
+        }
+
+        strengthText.textContent = strength;
+    });
+
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert {% if message.tags == 'success' %}alert-success{% else %}alert-danger{% endif %} text-center">
+            {{ message }}
+        </div>
+    {% endfor %}
+    {% endif %}
+</script>
+{% endblock %}
