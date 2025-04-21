@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4">👤 {{ user.username }}'s Profile</h2>
+
+    <p>Email: {{ user.email }}</p>
+    <p>Date Joined: {{ user.date_joined }}</p>
+
+    <hr>
+
+    <h4 class="mt-4">📜 Scan History</h4>
+
+    {% if history %}
+        <ul class="list-group">
+            {% for item in history %}
+                <li class="list-group-item">
+                    <strong>{{ item.created_at|date:"Y-m-d H:i" }}</strong> —
+                    {{ item.input_type|title }} scan
+                    <br>
+                    <a href="{% url 'accessibility_app:generate_pdf' item.id %}" class="btn btn-sm btn-outline-primary mt-1">Download PDF</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">No scans yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}

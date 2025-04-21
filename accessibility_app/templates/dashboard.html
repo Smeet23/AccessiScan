@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Accessibility Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Your Accessibility Analysis History 📊</h2>
+
+    {% if history %}
+        <div class="table-responsive shadow rounded">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Input Type</th>
+                        <th scope="col">Analyzed Data</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Violations</th>
+                        <th scope="col">PDF</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history %}
+                        <tr>
+                            <th scope="row">{{ forloop.counter }}</th>
+                            <td>{{ item.report.input_type|title }}</td>
+                            <td>
+                                {% if item.report.input_type == 'url' %}
+                                    <a href="{{ item.report.input_data }}" target="_blank">
+                                        {{ item.report.input_data|truncatechars:50 }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">HTML Snippet</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.report.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <span class="badge bg-danger">Critical: {{ item.critical }}</span>
+                                <span class="badge bg-warning text-dark">Serious: {{ item.serious }}</span>
+                                <span class="badge bg-info text-dark">Moderate: {{ item.moderate }}</span>
+                                <span class="badge bg-secondary">Minor: {{ item.minor }}</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'accessibility_app:generate_pdf' item.report.id %}" class="btn btn-sm btn-outline-primary">
+                                    Download PDF
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info mt-4">
+            You haven't run any accessibility checks yet.
+            Try one on the <a href="{% url 'accessibility_app:home' %}">home page</a>!
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

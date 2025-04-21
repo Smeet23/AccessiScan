@@ -76,6 +76,8 @@
                 {% if user.is_authenticated %}
                     <span class="me-3">Hello, {{ user.username }} 👋</span>
                     <a href="{% url 'accessibility_app:logout' %}" class="btn btn-outline-light btn-sm">Logout</a>
+                    <a href="{% url 'accessibility_app:profile' %}" class="btn btn-outline-light btn-sm">Profile</a>
+                    <a href="{% url 'accessibility_app:dashboard' %}"class="btn btn-outline-light btn-sm">Dashboard</a>
                 {% else %}
                     <a href="{% url 'accessibility_app:login' %}" class="btn btn-light btn-sm me-2">Login</a>
                     <a href="{% url 'accessibility_app:register' %}" class="btn btn-outline-light btn-sm">Register</a>

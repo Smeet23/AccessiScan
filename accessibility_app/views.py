@@ -1,27 +1,18 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from xhtml2pdf import pisa
-from .forms import AccessibilityAnalyzerForm
-from .models import AccessibilityAnalysis
-from .utils import analyze_accessibility
-
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib import messages
-from .forms import SignupForm
+from xhtml2pdf import pisa
 
-
+from .forms import AccessibilityAnalyzerForm, SignupForm
+from .models import AccessibilityAnalysis, ScanHistory
+from .utils import analyze_accessibility
 
 # ======================== AUTHENTICATION VIEWS ========================
 
-# User Signup
 def signup_view(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
@@ -37,7 +28,7 @@ def signup_view(request):
         form = SignupForm()
     return render(request, "auth/register.html", {"form": form})
 
-# User Login
+
 def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
@@ -52,15 +43,32 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, "auth/login.html", {"form": form})
 
-# User Logout
+
 def logout_view(request):
     logout(request)
     return redirect("accessibility_app:login")
 
+
+# @login_required
+# def dashboard_view(request):
+#     history = AccessibilityAnalysis.objects.filter(user=request.user).order_by('-created_at')
+#     return render(request, "dashboard.html", {"history": history})
+
 @login_required
 def dashboard_view(request):
     history = AccessibilityAnalysis.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, "dashboard.html", {"history": history})
+
+    enriched_history = []
+    for report in history:
+        enriched_history.append({
+            "report": report,
+            "critical": report.get_severity_count("critical"),
+            "serious": report.get_severity_count("serious"),
+            "moderate": report.get_severity_count("moderate"),
+            "minor": report.get_severity_count("minor"),
+        })
+
+    return render(request, "dashboard.html", {"history": enriched_history})
 
 
 # ======================== MAIN APP VIEWS ========================
@@ -93,16 +101,27 @@ def result(request):
         return redirect('accessibility_app:home')
 
     try:
+        # Run accessibility analysis
         analysis_result = analyze_accessibility(input_data, input_type)
 
+        # Save main analysis record
         analysis = AccessibilityAnalysis.objects.create(
             input_type=input_type,
             input_data=input_data,
             result_json=analysis_result,
             user_ip=request.META.get('REMOTE_ADDR'),
             user_agent=request.META.get('HTTP_USER_AGENT'),
-            user=request.user if request.user.is_authenticated else None  # ✅ Save user if logged in
+            user=request.user if request.user.is_authenticated else None
         )
+
+        # Save to history only if logged in
+        if request.user.is_authenticated:
+            ScanHistory.objects.create(
+                user=request.user,
+                url=input_data if input_type == "url" else None,
+                html_input=input_data if input_type == "html" else None,
+                scan_result=analysis_result,
+            )
 
         # Clear session
         request.session.pop('input_type', None)
@@ -152,3 +171,14 @@ def generate_pdf(request, analysis_id):
         return HttpResponse("Error generating PDF", status=500)
 
     return response
+
+
+@login_required
+def profile_view(request):
+    user = request.user
+    history = AccessibilityAnalysis.objects.filter(user=user).order_by('-created_at')
+    
+    return render(request, "profile.html", {
+        "user": user,
+        "history": history
+    })

@@ -53,3 +53,13 @@ class AccessibilityAnalysis(models.Model):
         Valid severities: critical, serious, moderate, minor.
         """
         return self.summary.get(severity, 0)
+
+class ScanHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    url = models.URLField(blank=True, null=True)
+    html_input = models.TextField(blank=True, null=True)
+    scan_result = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.url or 'HTML Input'}"
