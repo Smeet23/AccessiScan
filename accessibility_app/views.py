@@ -1,31 +1,39 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from xhtml2pdf import pisa
-from django.shortcuts import render
-from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.db.models.functions import TruncDate
-from .models import AccessibilityAnalysis
-from io import BytesIO
-import base64
-import matplotlib.pyplot as plt
-
 from .forms import AccessibilityAnalyzerForm, SignupForm
 from .models import AccessibilityAnalysis, ScanHistory
 from .utils import analyze_accessibility
+import base64
+from io import BytesIO
+import matplotlib.pyplot as plt
+from django.shortcuts import redirect
+from django.urls import reverse
 
-@login_required
+def custom_login_required(view_func):
+    """
+    Custom decorator that redirects unauthenticated users to the login page.
+    """
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            # Redirect to the login page
+            return redirect(reverse('accessibility_app:login'))  # Change 'accessibility_app:login' to your login URL name
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view
+
+# ======================== Chart Page View ========================
+@custom_login_required
 def chart_page(request, report_id):
     """Render the chart page for a specific report."""
     report = get_object_or_404(AccessibilityAnalysis, id=report_id, user=request.user)
     return render(request, "Chart.html", {"report": report})
 
-@login_required
+@custom_login_required
 def chart_data(request, report_id):
     """Provide severity data for a specific report only."""
     report = get_object_or_404(AccessibilityAnalysis, id=report_id, user=request.user)
@@ -37,10 +45,7 @@ def chart_data(request, report_id):
     }
     return JsonResponse({"severity_counts": severity_counts})
 
-
-# ======================== Register view ========================
-
-
+# ======================== Register View ========================
 def signup_view(request):
     if request.method == "POST":
         form = SignupForm(request.POST)
@@ -73,37 +78,32 @@ def login_view(request):
         form = AuthenticationForm()
     return render(request, "auth/login.html", {"form": form})
 
-
 # ======================== Logout View ========================
-
-@login_required
+@custom_login_required
 def logout_view(request):
     logout(request)
     return redirect("accessibility_app:login")
 
-# ======================== DashBoard View ========================
-
-@login_required
+# ======================== Dashboard View ========================
+@custom_login_required
 def dashboard_view(request):
     history = AccessibilityAnalysis.objects.filter(user=request.user).order_by('-created_at')
-
-    enriched_history = []
-    for report in history:
-        enriched_history.append({
+    enriched_history = [
+        {
             "report": report,
             "critical": report.get_severity_count("critical"),
             "serious": report.get_severity_count("serious"),
             "moderate": report.get_severity_count("moderate"),
             "minor": report.get_severity_count("minor"),
-            "score": report.calculate_score(),  # Add the score to the context
-        })
-
+            "score": report.calculate_score(),
+        }
+        for report in history
+    ]
     return render(request, "dashboard.html", {"history": enriched_history})
-
 
 # ======================== Home Page View ========================
 
-@login_required
+@custom_login_required
 def home(request):
     if request.method == 'POST':
         form = AccessibilityAnalyzerForm(request.POST)
@@ -123,7 +123,8 @@ def home(request):
     return render(request, 'home.html', {'form': form})
 
 # ======================== Result View ========================
-@login_required
+
+@custom_login_required
 def result(request):
     input_type = request.session.get('input_type')
     input_data = request.session.get('input_data')
@@ -169,7 +170,7 @@ def result(request):
             'serious': analysis.get_severity_count('serious'),
             'moderate': analysis.get_severity_count('moderate'),
             'minor': analysis.get_severity_count('minor'),
-            'score': analysis.calculate_score(),  # Include the score in the context
+            'score': analysis.calculate_score(),
         }
 
         return render(request, 'result.html', context)
@@ -179,8 +180,7 @@ def result(request):
         return redirect('accessibility_app:home')
 
 # ======================== Pdf Template View ========================
-
-@login_required
+@custom_login_required
 def generate_pdf(request, analysis_id):
     analysis = AccessibilityAnalysis.objects.get(id=analysis_id)
 
@@ -212,7 +212,7 @@ def generate_pdf(request, analysis_id):
         'moderate': analysis.get_severity_count('moderate'),
         'minor': analysis.get_severity_count('minor'),
         'chart_base64': chart_base64,
-        'score' : analysis.calculate_score()
+        'score': analysis.calculate_score()
     }
 
     html_string = render_to_string('pdf_template.html', context)
@@ -225,11 +225,8 @@ def generate_pdf(request, analysis_id):
         return HttpResponse("Error generating PDF", status=500)
     return response
 
-
-
 # ======================== Profile Page View ========================
-
-@login_required
+@custom_login_required
 def profile_view(request):
     user = request.user
     history = AccessibilityAnalysis.objects.filter(user=user).order_by('-created_at')
