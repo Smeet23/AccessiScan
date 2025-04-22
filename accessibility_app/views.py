@@ -10,6 +10,7 @@ from .models import AccessibilityAnalysis, ScanHistory
 from .utils import analyze_accessibility
 import base64
 from io import BytesIO
+from xhtml2pdf import pisa
 import matplotlib.pyplot as plt
 from django.shortcuts import redirect
 from django.urls import reverse
