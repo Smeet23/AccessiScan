@@ -33,7 +33,7 @@ AccessiScan is a powerful, developer-focused web application that scans and audi
 
 ```bash
 git clone https://github.com/Smeet23/AccessiScan.git
-cd accessiscan
+cd Accessiscan
 python -m venv env
 source venv/bin/activate  # or .\env\Scripts\activate on Windows
 pip install -r requirements.txt
