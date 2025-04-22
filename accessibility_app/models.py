@@ -46,6 +46,7 @@ class AccessibilityAnalysis(models.Model):
     def total_violations(self):
         """Return the total number of violations."""
         return self.summary.get('total_violations', 0)
+    
 
     def get_severity_count(self, severity):
         """
@@ -53,6 +54,17 @@ class AccessibilityAnalysis(models.Model):
         Valid severities: critical, serious, moderate, minor.
         """
         return self.summary.get(severity, 0)
+    
+    def calculate_score(self):
+        """Calculate the accessibility score based on violation severity counts."""
+        critical = self.get_severity_count("critical")
+        serious = self.get_severity_count("serious")
+        moderate = self.get_severity_count("moderate")
+        minor = self.get_severity_count("minor")
+
+        score = 100 - (critical * 10 + serious * 5 + moderate * 3 + minor * 1)
+        return max(0, min(score, 100))  # Ensure the score is between 0 and 100
+    
 
 class ScanHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

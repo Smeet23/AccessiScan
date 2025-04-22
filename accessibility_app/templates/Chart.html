@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Report Chart | Accessibility Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h3 class="mb-3">📊 Severity Chart for Report ID: {{ report.id }}</h3>
+    <p><strong>Analyzed:</strong> {{ report.input_data|truncatechars:60 }}</p>
+
+    <canvas id="severityBarChart" height="100"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    fetch("{% url 'accessibility_app:chart_data' report.id %}")
+        .then(response => response.json())
+        .then(data => {
+            const ctx = document.getElementById('severityBarChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data.severity_counts),
+                    datasets: [{
+                        label: 'Violations by Severity',
+                        data: Object.values(data.severity_counts),
+                        backgroundColor: [
+                            'rgba(220, 53, 69, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(13, 202, 240, 0.8)',
+                            'rgba(108, 117, 125, 0.8)'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: { display: true, text: "Violations" }
+                        },
+                        y: {
+                            title: { display: true, text: "Severity" }
+                        }
+                    }
+                }
+            });
+        });
+</script>
+{% endblock %}

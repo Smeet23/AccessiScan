@@ -2,87 +2,89 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accessibility Analysis Results</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: #f4f6f9;
             margin: 0;
             padding: 0;
+            color: #333;
         }
         .container {
-            width: 100%;
-            max-width: 800px;
+            max-width: 850px;
             margin: 30px auto;
-            padding: 20px;
+            padding: 30px;
             background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 14px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
         }
         h1 {
             text-align: center;
-            color: #333;
-            font-size: 28px;
+            color: #1a237e;
+            font-size: 34px;
+            margin-bottom: 25px;
         }
         h3 {
-            color: #2a3d52;
-            font-size: 20px;
-            margin-top: 20px;
-            font-weight: bold;
+            color: #1a237e;
+            font-size: 22px;
+            margin-top: 30px;
+            border-bottom: 2px solid #1a237e;
+            padding-bottom: 5px;
         }
         p, li {
-            font-size: 14px;
-            line-height: 1.5;
-            color: #555;
+            font-size: 15px;
+            line-height: 1.6;
         }
-        .summary-section, .violations-section {
-            background-color: #f9fafb;
-            padding: 15px;
+        ul {
+            padding-left: 20px;
+        }
+        .section {
+            background-color: #f9f9fb;
+            padding: 20px;
+            border-radius: 10px;
             margin-top: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #4caf50;
+            border-left: 6px solid #3f51b5;
         }
-        .summary-section ul, .violations-section ul {
-            list-style: none;
-            padding: 0;
+        .highlight {
+            font-weight: bold;
         }
-        .summary-section li, .violations-section li {
-            margin-bottom: 10px;
-        }
-        .violation-item {
-            background-color: #f2f8f5;
+        .highlight-critical { color: red; }
+        .highlight-serious { color: orange; }
+        .highlight-moderate { color: #caa700; }
+        .highlight-minor { color: green; }
+
+        .violation {
+            margin-top: 20px;
             padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background-color: #f4f8f6;
+            border-left: 5px solid #00bfa5;
+            border-radius: 10px;
         }
-        .violation-item h4 {
-            color: #e91e63;
-            font-size: 16px;
+        .violation h4 {
+            font-size: 17px;
+            color: #c2185b;
             margin-bottom: 5px;
         }
-        .violation-item p {
-            color: #777;
-            font-size: 14px;
+        .violation p {
+            margin: 5px 0;
         }
-        .violation-item h5 {
-            color: #2a3d52;
-            font-size: 15px;
+        .chart-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+        .chart-section img {
+            max-width: 100%;
+            height: auto;
             margin-top: 10px;
-        }
-        .violation-item ul {
-            padding-left: 20px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
         }
         .footer {
             text-align: center;
             font-size: 12px;
-            color: #777;
-            margin-top: 30px;
-        }
-        .highlight {
-            color: #e91e63;
-            font-weight: bold;
+            margin-top: 40px;
+            color: #888;
         }
     </style>
 </head>
@@ -90,7 +92,7 @@
     <div class="container">
         <h1>Accessibility Analysis Results</h1>
 
-        <div class="summary-section">
+        <div class="section">
             <h3>Input Information</h3>
             <p><strong>Input Type:</strong> {{ input_type|title }}</p>
             {% if input_type == 'url' %}
@@ -100,24 +102,34 @@
             {% endif %}
         </div>
 
-        <div class="summary-section">
+        <div class="section">
             <h3>Summary</h3>
             <ul>
-                <li><strong>Total Issues:</strong> <span class="highlight">{{ analysis.summary.total_violations }}</span></li>
-                <li><strong>Critical Issues:</strong> <span class="highlight" style="color: red;">{{ analysis.summary.critical }}</span></li>
-                <li><strong>Serious Issues:</strong> <span class="highlight" style="color: orange;">{{ analysis.summary.serious }}</span></li>
-                <li><strong>Moderate Issues:</strong> <span class="highlight" style="color: yellow;">{{ analysis.summary.moderate }}</span></li>
-                <li><strong>Minor Issues:</strong> <span class="highlight" style="color: green;">{{ analysis.summary.minor }}</span></li>
+                <li><strong>Total Issues:</strong> <span class="highlight">{{ total_violations }}</span></li>
+                <li><strong>Critical Issues:</strong> <span class="highlight highlight-critical">{{ critical }}</span></li>
+                <li><strong>Serious Issues:</strong> <span class="highlight highlight-serious">{{ serious }}</span></li>
+                <li><strong>Moderate Issues:</strong> <span class="highlight highlight-moderate">{{ moderate }}</span></li>
+                <li><strong>Minor Issues:</strong> <span class="highlight highlight-minor">{{ minor }}</span></li>
+                <li><strong>Accesibility_Score:</strong> <span class="highlight highlight-minor">{{ score }}</span></li>
             </ul>
         </div>
 
-        <div class="violations-section">
+        <div class="chart-section">
+            <h3>Visual Summary</h3>
+            {% if chart_base64 %}
+                <img src="data:image/png;base64,{{ chart_base64 }}" alt="Accessibility Chart">
+            {% else %}
+                <p>No chart available.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
             <h3>Accessibility Issues</h3>
             {% for violation in analysis.violations %}
-                <div class="violation-item">
+                <div class="violation">
                     <h4>{{ violation.id }} - {{ violation.description }}</h4>
                     <p><strong>Impact:</strong> {{ violation.impact|title }}</p>
-                    <h5>Suggestions:</h5>
+                    <p><strong>Suggestions:</strong></p>
                     <ul>
                         {% for suggestion in violation.suggestions %}
                             <li>{{ suggestion }}</li>

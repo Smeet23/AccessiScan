@@ -6,12 +6,40 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from xhtml2pdf import pisa
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.db.models.functions import TruncDate
+from .models import AccessibilityAnalysis
+from io import BytesIO
+import base64
+import matplotlib.pyplot as plt
 
 from .forms import AccessibilityAnalyzerForm, SignupForm
 from .models import AccessibilityAnalysis, ScanHistory
 from .utils import analyze_accessibility
 
-# ======================== AUTHENTICATION VIEWS ========================
+@login_required
+def chart_page(request, report_id):
+    """Render the chart page for a specific report."""
+    report = get_object_or_404(AccessibilityAnalysis, id=report_id, user=request.user)
+    return render(request, "Chart.html", {"report": report})
+
+@login_required
+def chart_data(request, report_id):
+    """Provide severity data for a specific report only."""
+    report = get_object_or_404(AccessibilityAnalysis, id=report_id, user=request.user)
+    severity_counts = {
+        "critical": report.get_severity_count("critical"),
+        "serious": report.get_severity_count("serious"),
+        "moderate": report.get_severity_count("moderate"),
+        "minor": report.get_severity_count("minor"),
+    }
+    return JsonResponse({"severity_counts": severity_counts})
+
+
+# ======================== Register view ========================
+
 
 def signup_view(request):
     if request.method == "POST":
@@ -23,12 +51,14 @@ def signup_view(request):
             messages.success(request, "Signup successful! 🎉 You can now log in.")
             return redirect("accessibility_app:login")
         else:
-            messages.error(request, "Signup failed. Please check the errors below. 🚨")
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field.capitalize()}: {error}")
     else:
         form = SignupForm()
     return render(request, "auth/register.html", {"form": form})
 
-
+# ======================== Login View ========================
 def login_view(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
@@ -44,15 +74,14 @@ def login_view(request):
     return render(request, "auth/login.html", {"form": form})
 
 
+# ======================== Logout View ========================
+
+@login_required
 def logout_view(request):
     logout(request)
     return redirect("accessibility_app:login")
 
-
-# @login_required
-# def dashboard_view(request):
-#     history = AccessibilityAnalysis.objects.filter(user=request.user).order_by('-created_at')
-#     return render(request, "dashboard.html", {"history": history})
+# ======================== DashBoard View ========================
 
 @login_required
 def dashboard_view(request):
@@ -66,13 +95,15 @@ def dashboard_view(request):
             "serious": report.get_severity_count("serious"),
             "moderate": report.get_severity_count("moderate"),
             "minor": report.get_severity_count("minor"),
+            "score": report.calculate_score(),  # Add the score to the context
         })
 
     return render(request, "dashboard.html", {"history": enriched_history})
 
 
-# ======================== MAIN APP VIEWS ========================
+# ======================== Home Page View ========================
 
+@login_required
 def home(request):
     if request.method == 'POST':
         form = AccessibilityAnalyzerForm(request.POST)
@@ -91,7 +122,8 @@ def home(request):
 
     return render(request, 'home.html', {'form': form})
 
-
+# ======================== Result View ========================
+@login_required
 def result(request):
     input_type = request.session.get('input_type')
     input_data = request.session.get('input_data')
@@ -136,7 +168,8 @@ def result(request):
             'critical': analysis.get_severity_count('critical'),
             'serious': analysis.get_severity_count('serious'),
             'moderate': analysis.get_severity_count('moderate'),
-            'minor': analysis.get_severity_count('minor')
+            'minor': analysis.get_severity_count('minor'),
+            'score': analysis.calculate_score(),  # Include the score in the context
         }
 
         return render(request, 'result.html', context)
@@ -145,9 +178,29 @@ def result(request):
         messages.error(request, f"An error occurred while analyzing the data: {str(e)}")
         return redirect('accessibility_app:home')
 
+# ======================== Pdf Template View ========================
 
+@login_required
 def generate_pdf(request, analysis_id):
     analysis = AccessibilityAnalysis.objects.get(id=analysis_id)
+
+    # Generate chart as base64
+    fig, ax = plt.subplots()
+    labels = ['Critical', 'Serious', 'Moderate', 'Minor']
+    counts = [
+        analysis.get_severity_count('critical'),
+        analysis.get_severity_count('serious'),
+        analysis.get_severity_count('moderate'),
+        analysis.get_severity_count('minor')
+    ]
+    colors = ['#f44336', '#ff9800', '#ffeb3b', '#4caf50']
+    ax.pie(counts, labels=labels, colors=colors, autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')
+
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    plt.close(fig)
+    chart_base64 = base64.b64encode(buf.getvalue()).decode('utf-8')
 
     context = {
         'analysis': analysis,
@@ -157,7 +210,9 @@ def generate_pdf(request, analysis_id):
         'critical': analysis.get_severity_count('critical'),
         'serious': analysis.get_severity_count('serious'),
         'moderate': analysis.get_severity_count('moderate'),
-        'minor': analysis.get_severity_count('minor')
+        'minor': analysis.get_severity_count('minor'),
+        'chart_base64': chart_base64,
+        'score' : analysis.calculate_score()
     }
 
     html_string = render_to_string('pdf_template.html', context)
@@ -166,12 +221,13 @@ def generate_pdf(request, analysis_id):
     response['Content-Disposition'] = 'attachment; filename="accessibility_analysis.pdf"'
 
     pisa_status = pisa.CreatePDF(html_string, dest=response)
-
     if pisa_status.err:
         return HttpResponse("Error generating PDF", status=500)
-
     return response
 
+
+
+# ======================== Profile Page View ========================
 
 @login_required
 def profile_view(request):
