@@ -75,3 +75,40 @@ class ScanHistory(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.url or 'HTML Input'}"
+    
+
+# Add to models.py
+class AccessibilityRemediationTip(models.Model):
+    ISSUE_TYPES = [
+        ('img_alt', 'Missing Alt Text'),
+        ('heading_structure', 'Improper Heading Structure'),
+        ('color_contrast', 'Insufficient Color Contrast'),
+        ('form_labels', 'Missing Form Labels'),
+        ('keyboard_nav', 'Keyboard Navigation Issues'),
+        ('aria_misuse', 'ARIA Misuse'),
+        ('semantic_markup', 'Improper Semantic Markup'),
+        ('focus_indicator', 'Missing Focus Indicator'),
+        ('link_purpose', 'Unclear Link Purpose'),
+        ('other', 'Other'),
+    ]
+    
+    SEVERITY_LEVELS = [
+        ('critical', 'Critical'),
+        ('serious', 'Serious'),
+        ('moderate', 'Moderate'),
+        ('minor', 'Minor'),
+    ]
+    
+    issue_type = models.CharField(max_length=50, choices=ISSUE_TYPES)
+    severity = models.CharField(max_length=20, choices=SEVERITY_LEVELS)
+    description = models.TextField(help_text="Description of the issue")
+    solution = models.TextField(help_text="How to fix the issue")
+    code_example_before = models.TextField(blank=True, help_text="Example of problematic code")
+    code_example_after = models.TextField(blank=True, help_text="Example of fixed code")
+    wcag_reference = models.CharField(max_length=100, blank=True, help_text="WCAG guideline reference")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.get_issue_type_display()} - {self.get_severity_display()}"

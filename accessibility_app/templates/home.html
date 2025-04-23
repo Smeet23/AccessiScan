@@ -3,23 +3,35 @@
 {% block title %}Accessibility Analyzer - Home{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-    <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-6 text-gray-800">Analyze Web Accessibility</h2>
+<div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+        <h1 class="text-3xl md:text-4xl font-bold text-indigo-700 mb-4">Accessibility Analyzer</h1>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Identify accessibility issues and make your web content available to everyone.</p>
+    </div>
+
+    <!-- Analysis Form Card -->
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-gray-100 mb-10">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Analyze Web Accessibility
+        </h2>
         
         <form method="post" action="{% url 'accessibility_app:home' %}" class="space-y-6" aria-describedby="form-error-message">
             {% csrf_token %}
             
             <!-- Input Type Selection -->
-            <div class="mb-4">
+            <div class="mb-6">
                 <label class="block text-gray-700 font-medium mb-2">{{ form.input_type.label }}</label>
-                <fieldset class="border p-4">
-                    <legend class="text-gray-700 font-medium">Choose Input Type</legend>
-                    <div class="flex space-x-4">
+                <fieldset class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <legend class="text-indigo-600 font-medium px-2">Choose Input Type</legend>
+                    <div class="flex space-x-6">
                         {% for radio in form.input_type %}
                         <div class="flex items-center">
                             {{ radio.tag }}
-                            <label for="{{ radio.id_for_label }}" class="ml-2">
+                            <label for="{{ radio.id_for_label }}" class="ml-2 text-gray-700 hover:text-indigo-600 cursor-pointer">
                                 {{ radio.choice_label }}
                             </label>
                         </div>
@@ -32,8 +44,11 @@
             </div>
             
             <!-- URL Input -->
-            <div class="form-group">
-                <label for="{{ form.url.id_for_label }}" class="block text-gray-700 font-medium mb-2">
+            <div class="form-group transition-all duration-300">
+                <label for="{{ form.url.id_for_label }}" class="block text-gray-700 font-medium mb-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
                     {{ form.url.label }}
                 </label>
                 {{ form.url }}
@@ -44,8 +59,11 @@
             </div>
             
             <!-- HTML Input -->
-            <div class="form-group">
-                <label for="{{ form.html.id_for_label }}" class="block text-gray-700 font-medium mb-2">
+            <div class="form-group transition-all duration-300">
+                <label for="{{ form.html.id_for_label }}" class="block text-gray-700 font-medium mb-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                    </svg>
                     {{ form.html.label }}
                 </label>
                 {{ form.html }}
@@ -57,28 +75,74 @@
             
             <!-- Submit Button -->
             <div>
-                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md transition duration-300" aria-label="Analyze accessibility">
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-8 rounded-lg transition duration-300 flex items-center justify-center shadow-md hover:shadow-lg w-full sm:w-auto" aria-label="Analyze accessibility">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
                     Analyze Accessibility
                 </button>
             </div>
         </form>
     </div>
     
-    <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
-        <h3 class="text-xl font-semibold mb-4 text-gray-800">About This Tool</h3>
-        <p class="text-gray-700">
-            Accessibility Analyzer is a web accessibility auditing tool that programmatically scans webpages for WCAG 2.1 compliance. It identifies common accessibility violations—such as missing ARIA labels, insufficient color contrast, and improper semantic structure—and provides actionable insights to improve usability for users with disabilities. Built to streamline inclusive design in modern web development workflows.
+    <!-- About Section Card -->
+    <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-gray-100">
+        <h3 class="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            About This Tool
+        </h3>
+        <p class="text-gray-700 leading-relaxed">
+            Accessibility Analyzer is a comprehensive web accessibility auditing tool that programmatically scans webpages for WCAG 2.1 compliance. It identifies common accessibility violations—such as missing ARIA labels, insufficient color contrast, and improper semantic structure—and provides actionable insights to improve usability for users with disabilities. Built to streamline inclusive design in modern web development workflows.
         </p>
         
-        <h4 class="text-lg font-semibold mt-4 mb-2 text-gray-800">What We Check For:</h4>
-        <ul class="list-disc pl-5 text-gray-700 space-y-1">
-            <li>Color contrast issues</li>
-            <li>Missing alt text on images</li>
-            <li>Improper heading structure</li>
-            <li>Form accessibility problems</li>
-            <li>Keyboard navigation barriers</li>
-            <li>And many more accessibility concerns</li>
-        </ul>
+        <!-- Features Section -->
+        <h4 class="text-lg font-semibold mt-6 mb-3 text-gray-800 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            What We Check For:
+        </h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+            <div class="flex items-start p-3 rounded-lg bg-indigo-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-0.5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="ml-2 text-gray-700">Color contrast issues</span>
+            </div>
+            <div class="flex items-start p-3 rounded-lg bg-indigo-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-0.5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="ml-2 text-gray-700">Missing alt text on images</span>
+            </div>
+            <div class="flex items-start p-3 rounded-lg bg-indigo-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-0.5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="ml-2 text-gray-700">Improper heading structure</span>
+            </div>
+            <div class="flex items-start p-3 rounded-lg bg-indigo-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-0.5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="ml-2 text-gray-700">Form accessibility problems</span>
+            </div>
+            <div class="flex items-start p-3 rounded-lg bg-indigo-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-0.5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="ml-2 text-gray-700">Keyboard navigation barriers</span>
+            </div>
+            <div class="flex items-start p-3 rounded-lg bg-indigo-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mt-0.5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="ml-2 text-gray-700">And many more accessibility concerns</span>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

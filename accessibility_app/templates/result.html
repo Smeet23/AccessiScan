@@ -1,10 +1,105 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load math_filters %}
 
-{% block title %}🔥 Accessibility Analysis Results 🔥{% endblock %}
+{% block title %}
+  {% if view_mode == 'remediation' %}
+    Accessibility Remediation Plan
+  {% else %}
+    🔥 Accessibility Analysis Results 🔥
+  {% endif %}
+{% endblock %}
+
+{% block extra_css %}
+{% if view_mode == 'remediation' %}
+<link rel="stylesheet" href="{% static 'css/prism.css' %}">
+<style>
+    .remediation-card {
+        margin-bottom: 2rem;
+        border-left: 4px solid #ddd;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        /* Add to prevent overflow */
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        max-width: 100%;
+    }
+    .remediation-card.critical { border-left-color: #f44336; }
+    .remediation-card.serious { border-left-color: #ff9800; }
+    .remediation-card.moderate { border-left-color: #ffeb3b; }
+    .remediation-card.minor { border-left-color: #4caf50; }
+
+    /* Change from grid to block display for vertical stacking */
+    .code-comparison {
+        display: block;
+        margin: 1rem 0;
+    }
+    
+    .code-block {
+        margin-bottom: 1.5rem;
+        width: 100%;
+    }
+
+    .code-header {
+        padding: 0.5rem;
+        background: #f5f5f5;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+    
+    .code-comparison pre {
+        margin-top: 0;
+        overflow-x: auto;
+        max-width: 100%;
+    }
+
+    .fix-action {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f5f5f5;
+        border-radius: 4px;
+    }
+
+    .wcag-reference {
+        font-size: 0.85rem;
+        padding: 0.3rem 0.6rem;
+        background: #e9ecef;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+    
+    /* Added for example code sections */
+    .example-code-comparison {
+        display: block;
+    }
+    
+    .example-code-comparison > div {
+        margin-bottom: 1.5rem;
+        width: 100%;
+    }
+</style>
+{% endif %}
+{% endblock %}
 
 {% block content %}
+<!-- Navigation Tabs -->
 <div class="max-w-5xl mx-auto p-4 animate-fade-in">
+    <div class="mb-6 flex justify-around">
+        <a href="{% url 'accessibility_app:result' analysis_id %}?view=results" 
+           class="px-6 py-3 font-bold rounded-t-lg {% if view_mode != 'remediation' %}bg-purple-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
+            📊 Analysis Results
+        </a>
+        <a href="{% url 'accessibility_app:result' analysis_id %}?view=remediation" 
+           class="px-6 py-3 font-bold rounded-t-lg {% if view_mode == 'remediation' %}bg-purple-600 text-white{% else %}bg-gray-200 text-gray-700 hover:bg-gray-300{% endif %}">
+            🔧 Remediation Plan
+        </a>
+    </div>
 
+    {% if view_mode != 'remediation' %}
+    <!-- RESULTS VIEW -->
+    
     <!-- Input Info -->
     <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-6 rounded-lg shadow-xl mb-6 text-white">
         <h2 class="text-3xl font-extrabold mb-4">⚡ Accessibility Analysis Results ⚡</h2>
@@ -115,6 +210,121 @@
         {% endif %}
     </div>
 
+    {% else %}
+    <!-- REMEDIATION VIEW -->
+    
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1>Remediation Plan</h1>
+                <p class="lead">
+                    Based on analysis of 
+                    {% if analysis.input_type == 'url' %}
+                        URL: <a href="{{ analysis.input_data }}" target="_blank">{{ analysis.input_data }}</a>
+                    {% else %}
+                        HTML input
+                    {% endif %}
+                </p>
+
+                <div class="alert alert-info">
+                    <h4>Remediation Summary</h4>
+                    <p>This plan addresses {{ remediation_plan|length }} accessibility issues found in your content.</p>
+                    <p>Following these recommendations will help improve your accessibility score and ensure better access for all users.</p>
+                    <p><strong>Current Accessibility Score:</strong> {{ score }}/100</p>
+                </div>
+
+                <div class="progress mb-4">
+                    {% if total_count > 0 %}
+                        <div class="progress-bar bg-danger" style="width: {% widthratio critical_count total_count 100 %}%" role="progressbar">
+                            Critical: {{ critical_count }}
+                        </div>
+                        <div class="progress-bar bg-warning" style="width: {% widthratio serious_count total_count 100 %}%" role="progressbar">
+                            Serious: {{ serious_count }}
+                        </div>
+                        <div class="progress-bar bg-info" style="width: {% widthratio moderate_count total_count 100 %}%" role="progressbar">
+                            Moderate: {{ moderate_count }}
+                        </div>
+                        <div class="progress-bar bg-success" style="width: {% widthratio minor_count total_count 100 %}%" role="progressbar">
+                            Minor: {{ minor_count }}
+                        </div>
+                    {% else %}
+                        <div class="progress-bar bg-success" style="width: 100%" role="progressbar">
+                            No issues found
+                        </div>
+                    {% endif %}
+                </div>
+
+                <section id="remediation-issues">
+                    {% for item in remediation_plan %}
+                        <div class="remediation-card {{ item.violation.impact }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h3>{{ item.violation.help }}</h3>
+                                <span class="badge {% if item.violation.impact == 'critical' %}badge-danger{% elif item.violation.impact == 'serious' %}badge-warning{% elif item.violation.impact == 'moderate' %}badge-info{% else %}badge-success{% endif %}">
+                                    {{ item.violation.impact|title }}
+                                </span>
+                            </div>
+
+                            <p>{{ item.violation.description }}</p>
+
+                            {% if item.tips.wcag_reference %}
+                                <div class="wcag-reference">
+                                    <strong>WCAG Reference:</strong> {{ item.tips.wcag_reference }}
+                                </div>
+                            {% endif %}
+
+                            {% if item.html_snippet %}
+                                <!-- Modified code comparison to display vertically instead of in grid -->
+                                <div class="code-comparison">
+                                    <div class="code-block">
+                                        <div class="code-header">Current Code</div>
+                                        <pre><code class="language-html">{{ item.html_snippet }}</code></pre>
+                                    </div>
+                                    <div class="code-block">
+                                        <div class="code-header">Suggested Fix</div>
+                                        <pre><code class="language-html">{{ item.suggested_fix }}</code></pre>
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <div class="fix-action">
+                                <h4>How to Fix</h4>
+                                {% if item.tips %}
+                                    <p>{{ item.tips.solution }}</p>
+
+                                    {% if item.tips.code_example_before and item.tips.code_example_after %}
+                                        <details>
+                                            <summary>View Example</summary>
+                                            <!-- Modified example comparison to display vertically -->
+                                            <div class="example-code-comparison mt-2">
+                                                <div>
+                                                    <div class="code-header">Example: Problem</div>
+                                                    <pre><code class="language-html">{{ item.tips.code_example_before }}</code></pre>
+                                                </div>
+                                                <div>
+                                                    <div class="code-header">Example: Solution</div>
+                                                    <pre><code class="language-html">{{ item.tips.code_example_after }}</code></pre>
+                                                </div>
+                                            </div>
+                                        </details>
+                                    {% endif %}
+                                {% else %}
+                                    <p>Address this issue by ensuring that {{ item.violation.help|lower }}.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="alert alert-success">
+                            <h3>No issues to remediate!</h3>
+                            <p>Great job! No accessibility issues were found that require remediation.</p>
+                        </div>
+                    {% endfor %}
+                </section>
+            </div>
+        </div>
+    </div>
+    
+    {% endif %}
+
     <!-- Action Buttons -->
     <div class="mt-10 flex flex-col md:flex-row justify-center items-center gap-4">
         <a href="{% url 'accessibility_app:generate_pdf' analysis_id=analysis_id %}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition">
@@ -126,3 +336,16 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+{% if view_mode == 'remediation' %}
+<script src="{% static 'js/prism.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Prism !== 'undefined') {
+            Prism.highlightAll();
+        }
+    });
+</script>
+{% endif %}
+{% endblock %} 
