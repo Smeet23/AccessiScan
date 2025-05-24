@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-replace-this-with-actual-secret-key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["accessiscan.onrender.com"]
 
 # Application definition
 INSTALLED_APPS = [
