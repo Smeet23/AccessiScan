@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Fix Common Accessibility Issues{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-6 py-10">
+    <h1 class="text-4xl font-bold text-indigo-700 mb-6">Fix Common Accessibility Issues</h1>
+    <p class="text-lg text-gray-700 mb-8">
+        Accessibility ensures your website can be used by everyone, including people with disabilities.
+        Below are some of the most common issues and actionable tips to fix them.
+    </p>
+
+    <div class="space-y-8 text-gray-800">
+        <div>
+            <h2 class="text-2xl font-semibold text-indigo-600">1. Missing Alt Text</h2>
+            <p class="mt-2">
+                All images must include descriptive <code class="bg-gray-100 px-1 rounded">&lt;img alt="..."&gt;</code> attributes.
+                This helps screen readers describe the image to users who can't see them.
+            </p>
+            <p class="mt-1">
+                <strong>Example:</strong> Use <code class="bg-gray-100 px-1 rounded">&lt;img src="logo.png" alt="Company Logo"&gt;</code>
+                instead of leaving <code>alt</code> empty.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-semibold text-indigo-600">2. Poor Color Contrast</h2>
+            <p class="mt-2">
+                Text must have enough contrast against its background to be readable by people with visual impairments.
+            </p>
+            <p class="mt-1">
+                <a href="https://webaim.org/resources/contrastchecker/" class="text-indigo-500 underline">Check contrast with WebAIM</a>
+                and aim for at least a 4.5:1 ratio for normal text (WCAG AA).
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-semibold text-indigo-600">3. Missing Form Labels</h2>
+            <p class="mt-2">
+                Every input field must be associated with a <code class="bg-gray-100 px-1 rounded">&lt;label&gt;</code> for clarity and screen reader support.
+            </p>
+            <p class="mt-1">
+                <strong>Good:</strong> <code class="bg-gray-100 px-1 rounded">&lt;label for="email"&gt;Email:&lt;/label&gt; &lt;input id="email"&gt;</code>
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-semibold text-indigo-600">4. Lack of Keyboard Navigation</h2>
+            <p class="mt-2">
+                All interactive elements should be accessible via keyboard (Tab, Enter, Space).
+                Avoid relying solely on mouse or touch input.
+            </p>
+            <p class="mt-1">
+                <strong>Tip:</strong> Use <code class="bg-gray-100 px-1 rounded">tabindex="0"</code> for custom elements and avoid using <code class="bg-gray-100 px-1 rounded">tabindex="-1"</code> unless necessary.
+            </p>
+        </div>
+
+        <div>
+            <h2 class="text-2xl font-semibold text-indigo-600">5. Missing Page Landmarks</h2>
+            <p class="mt-2">
+                Use semantic HTML tags or ARIA roles to define page structure. This helps assistive tools understand the layout.
+            </p>
+            <p class="mt-1">
+                <strong>Use:</strong> <code class="bg-gray-100 px-1 rounded">&lt;nav&gt;</code>, <code class="bg-gray-100 px-1 rounded">&lt;header&gt;</code>, <code class="bg-gray-100 px-1 rounded">&lt;main&gt;</code>, <code class="bg-gray-100 px-1 rounded">&lt;footer&gt;</code>.
+            </p>
+        </div>
+    </div>
+
+    <div class="mt-10">
+        <a href="{% url 'accessibility_app:home' %}" class="text-indigo-600 underline hover:text-indigo-800">← Back to Checklist</a>
+    </div>
+</div>
+{% endblock %}

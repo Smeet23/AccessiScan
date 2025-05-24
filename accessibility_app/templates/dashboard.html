@@ -15,7 +15,7 @@
                         <th scope="col">Input Type</th>
                         <th scope="col">Analyzed Data</th>
                         <th scope="col">Date</th>
-                        <th scope="col">Violations</th>
+                        <th scope="col">Score</th>
                         <th scope="col">PDF</th>
                     </tr>
                 </thead>
@@ -35,15 +35,18 @@
                             </td>
                             <td>{{ item.report.created_at|date:"Y-m-d H:i" }}</td>
                             <td>
-                                <span class="badge bg-danger">Critical: {{ item.critical }}</span>
+                                <!-- <span class="badge bg-danger">Critical: {{ item.critical }}</span>
                                 <span class="badge bg-warning text-dark">Serious: {{ item.serious }}</span>
                                 <span class="badge bg-info text-dark">Moderate: {{ item.moderate }}</span>
-                                <span class="badge bg-secondary">Minor: {{ item.minor }}</span>
+                                <span class="badge bg-secondary">Minor: {{ item.minor }}</span> -->
                                 <span class="badge bg-secondary">Accessibility Score: {{ item.score }} / 100</span>
                             </td>
                             <td>
                                 <a href="{% url 'accessibility_app:generate_pdf' item.report.id %}" class="btn btn-sm btn-outline-primary">
                                     Download PDF
+                                </a>
+                                <a href="{% url 'accessibility_app:result' item.report.id %}" class="btn btn-sm btn-outline-primary">
+                                    View Results
                                 </a>
                                 <a href="{% url 'accessibility_app:chart_page' item.report.id %}" class="btn btn-sm btn-outline-success ms-2">
                                     View Chart

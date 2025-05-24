@@ -17,4 +17,6 @@ urlpatterns = [
     path('report/<int:report_id>/chart/data/', views.chart_data, name='chart_data'),
     path('remediation/<int:analysis_id>/', views.remediation_view, name='remediation'),
     path("dashboard/", views.dashboard_view, name="dashboard"),
+    path('common-issues/', views.common_issues, name='common_issues'),
+
 ]

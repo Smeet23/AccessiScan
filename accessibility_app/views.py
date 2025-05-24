@@ -34,6 +34,9 @@ def custom_login_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
+def common_issues(request):
+    return render(request, 'common_issues.html')
+
 # ======================== Chart Views ========================
 @custom_login_required
 def chart_page(request, report_id):
@@ -112,11 +115,16 @@ def home(request):
         form = AccessibilityAnalyzerForm(request.POST)
         if form.is_valid():
             input_type = form.cleaned_data['input_type']
+            input_data = form.cleaned_data.get(input_type)
+
+            # Store in session
             request.session['input_type'] = input_type
-            request.session['input_data'] = form.cleaned_data.get(input_type)
+            request.session['input_data'] = input_data
+
             return redirect('accessibility_app:result')
     else:
         form = AccessibilityAnalyzerForm()
+
     return render(request, 'home.html', {'form': form})
 
 # ======================== Result View ========================
